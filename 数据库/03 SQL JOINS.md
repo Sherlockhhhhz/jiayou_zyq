@@ -145,7 +145,8 @@ ORDER BY Persons.LastName
 
 RIGHT JOIN 关键字会从右表 (Orders) 那里返回所有的行，即使在左表 (Persons) 中没有匹配的行。
 
-
+#### 04. CROSS JOIN
+MySQL的CROSS JOIN是一种用于在两个或多个表之间创建笛卡尔积的连接操作。它返回两个表中所有可能的组合，即将一个表的每一行与另一个表的每一行进行组合。
 
 
 ### 总结
