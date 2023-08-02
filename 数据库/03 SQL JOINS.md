@@ -147,52 +147,6 @@ RIGHT JOIN 关键字会从右表 (Orders) 那里返回所有的行，即使在�
 
 
 
-### 4. FULL JOIN（或FULL OUTER JOIN）：
-返回左表和右表中的所有行，如果没有匹配的行，则返回NULL值。
-`FULL JOIN`关键字语法
-```sql
-SELECT column_name(s)
-FROM table_name1
-FULL JOIN table_name2
-ON table_name1.column_name=table_name2.column_name
-```
-实例表:
-
-**Persons表**
-|Id_P	|LastName	|FirstName	|Address	|City
-|---|-------|-------|-------|-------|
-|1	|Adams	|John	|Oxford Street	|London
-|2	|Bush	|George	|Fifth |Avenue	|New York
-|3	|Carter	|Thomas	|Changan |Street	|Beijing
-
-
-**Orders表**
-|Id_O	|OrderNo	|Id_P
-|----|-----|----|
-|1	|77895	|3
-|2	|44678	|3
-|3	|22456	|1
-|4	|24562	|1
-|5	|34764	|65
-
-```sql
-SELECT Persons.LastName, Persons.FirstName, Orders.OrderNo
-FROM Persons
-FULL JOIN Orders
-ON Persons.Id_P=Orders.Id_P
-ORDER BY Persons.LastName
-```
-|LastName	|FirstName	|OrderNo
-|------|-------|-----|
-|Adams	|John	|22456
-|Adams	|John	|24562
-|Carter	|Thomas	|77895
-|Carter|	Thomas	|44678
-|Bush|	George	 |NULL
-|NULL| 	NULL 	|34764|
-
-FULL JOIN 关键字会从左表 (Persons) 和右表 (Orders) 那里返回所有的行。如果 "Persons" 中的行在表 "Orders" 中没有匹配，或者如果 "Orders" 中的行在表 "Persons" 中没有匹配，这些行同样会列出。
-
 
 ### 总结
 JOIN操作通常需要指定连接条件，这是通过使用ON子句或WHERE子句来实现的。连接条件定义了连接两个表的列之间的关系。
