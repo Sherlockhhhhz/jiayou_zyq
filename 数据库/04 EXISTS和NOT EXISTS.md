@@ -24,23 +24,21 @@ WHERE NOT EXISTS (SELECT column_name FROM table_name WHERE condition);
 当我们有两个表`Customers`和`Orders`时，我们可以使用`EXISTS`和`NOT EXISTS`来检查某个客户是否有订单。
 
 假设我们有以下的`Customers`表：
-|----|----------|
 | ID | Name     |
 |----|----------|
 | 1  | John     |
 | 2  | Mary     |
 | 3  | David    |
-|----|----------|
+
 
 
 以及以下的`Orders`表：
-|----|------------|-----------|
 | ID | CustomerID | OrderDate |
 |----|------------|-----------|
 | 1  | 1          | 2021-01-01|
 | 2  | 2          | 2021-02-01|
 | 3  | 2          | 2021-03-01|
-|----|------------|-----------|
+
 
 
 我们可以使用`EXISTS`来查找有订单的客户：
@@ -52,12 +50,11 @@ WHERE EXISTS (SELECT * FROM Orders WHERE Customers.ID = Orders.CustomerID);
 ```
 
 这将返回以下结果：
-|------|
 | Name |
 |------|
 | John |
 | Mary |
-|------|
+
 
 
 我们也可以使用`NOT EXISTS`来查找没有订单的客户：
@@ -69,11 +66,10 @@ WHERE NOT EXISTS (SELECT * FROM Orders WHERE Customers.ID = Orders.CustomerID);
 ```
 
 这将返回以下结果：
-|-------|
 | Name  |
 |-------|
 | David |
-|-------|
+
 
 
 这是一个简单的例子，演示了如何使用`EXISTS`和`NOT EXISTS`来检查子查询的结果是否存在。你可以根据自己的需求和数据模型进行更复杂的查询。
