@@ -2,7 +2,6 @@
 一个计数器工具提供快速和方便的计数，`Counter`是一个`dict`的子类，用于计数可哈希对象。它是一个集合，元素像字典键(`key`)一样存储，它们的计数存储为值。计数可以是任何整数值，包括0和负数，Counter类有点像其他语言中的bags或multisets。简单说，就是可以统计计数，来几个例子看看就清楚了，比如
 ```python
 from collections import Counter
-import re
 
 text = 'remove an existing key one level down remove an existing key one level down'
 #计算列表中单词的个数
