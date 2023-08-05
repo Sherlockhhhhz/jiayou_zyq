@@ -9,7 +9,7 @@ cnt = Counter()
 for word in ['red', 'blue', 'red', 'green', 'blue', 'blue']:
     cnt[word] += 1
 cnt
-Output: Counter({'red': 2, 'blue': 3, 'green': 1})words = re,find
+Output: Counter({'red': 2, 'blue': 3, 'green': 1})
 
 #上述这样计算有点嘛，下面的方法更简单，直接计算就行
 L = ['red', 'blue', 'red', 'green', 'blue', 'blue'] 
