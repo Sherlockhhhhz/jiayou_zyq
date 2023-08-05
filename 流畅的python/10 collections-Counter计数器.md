@@ -3,7 +3,7 @@
 ```python
 from collections import Counter
 
-text = 'remove an existing key one level down remove an existing key one level down'
+
 #计算列表中单词的个数
 cnt = Counter()
 for word in ['red', 'blue', 'red', 'green', 'blue', 'blue']:
