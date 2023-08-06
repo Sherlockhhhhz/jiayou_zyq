@@ -43,7 +43,7 @@ d.count('b')
 Ouput: 2
 ```
 
-#### 6.extend
+#### 6.extend()
 扩展双向队列的右侧, 通过添加`iterable`参数中的元素, 人话: 合并两个双向队列
 ```python
 a = deque('abc')
