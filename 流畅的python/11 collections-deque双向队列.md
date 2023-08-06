@@ -30,7 +30,7 @@ Output: deque([])
 创建一份拷贝
 ```python
 d = deque('helloworld')
-y = d.copy
+y = d.copy()
 y
 Output: deque(['h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd'])
 ```
