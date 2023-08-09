@@ -62,7 +62,7 @@ response2 = cursor.fetchall()
 |fetchall()|返回剩下的所有行,如果走到末尾,就返回空元组,否则返回一个元组,其元素是每一行的记录封装的一个元组|
 |cursor.rownumber|返回当前行号.可以修改,支持负数|
 |cursor.rowcount|返回的总行数|
-**注意:**fetch操作的是结果集，结果集是保存在客户端的，也就是说fetch的时候，查询已经结束了
+**注意**：fetch操作的是结果集，结果集是保存在客户端的，也就是说fetch的时候，查询已经结束了
 
 #### 2. 事务
 `Connection`类提供了三个方法： `begin`开始事务，`commit`提交事务， `rollback`回滚事务，如果通过sql语句对数据库中的数据进行了修改，则需要提交事务。
