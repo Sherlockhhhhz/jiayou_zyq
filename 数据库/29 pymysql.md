@@ -1,4 +1,4 @@
-### 28. pymysql
+### 29. pymysql
 要想在python中使用数据库，我们需要第三方库，常用的是pymysql模块，下面我们来认识一下。
 
 #### 1. pymysql的使用
