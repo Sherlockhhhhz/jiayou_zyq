@@ -30,19 +30,21 @@ from yolov5.detect import run, run2
 from yolov5.models.common import DetectMultiBackend
 from yolov5.utils.general import check_img_size
 
-
+# 判断是否是中文
 def is_Chinese(word):
     for ch in word:
         if '\u4e00' > ch or ch > '\u9fff':
             return False
     return True
 
+# 判读是否是月份(1-12个月)
 def is_month(month):
     return  1 <= eval(month) <= 12
 
+# 判断是否是日期, 有一个问题就是因为不是每一个月都是31天，这里后面还需要修改
 def is_day(day):
     return 1 <= eval(day) <= 31
-
+# 
 class Ocr_demo():
     def __init__(self):
         self.login_window = Login_window() # 登录界面窗口
@@ -52,7 +54,7 @@ class Ocr_demo():
         self.timer = QTimer() # 计时器
         self.timer.setInterval(15) # 设置计时器运行时间间隔
         self.cam = cv2.VideoCapture(0) # 摄像头
-        self.db = pymysql.connect( # 连接数据库
+        self.db = pymysql.connect( # 连接数据库, 这里作为属性的原因是, 有很多函数都需要连接数据库, 直接作为属性, 可以减小程序开销
                 host='localhost',
                 user="root",
                 password='123456',
@@ -60,11 +62,11 @@ class Ocr_demo():
             )
         
         self.weights = '../yolov5/yolov5s.pt' # yolo预训练网络参数
-        self.dnn = False # yolo参数
+        self.dnn = False # yolo dnn参数
         self.data = '../yolov5/data/coco128.yaml' # yolo神经网络训练集
-        self.half = False # yolo参数
+        self.half = False # yolo half参数
         self.model = DetectMultiBackend(self.weights, dnn=self.dnn, data=self.data, fp16=self.half) # yolo模型
-        self.stride, self.names, self.pt = self.model.stride, self.model.names, self.model.pt # yolo参数
+        self.stride, self.names, self.pt = self.model.stride, self.model.names, self.model.pt # yolo stride, names, pt参数, 其中names是yolo预训练数据集的类名(dog啊, cat啊巴拉巴拉的)
 
         self.connect() # 运行控件连接函数
 
@@ -86,20 +88,20 @@ class Ocr_demo():
         # 收集数据
         work_id = self.login_window.workerIdLineEdit.text() # 获取用户输入的工号
         name = self.login_window.nameLineEdit.text() # 获取用户输入的姓名
-        if work_id != "" and name != "": # 确保用户进行了输入
+        if work_id != "" and name != "": # 输入不能为空, 确保用户进行了输入
             if work_id.isdigit(): # 再进行一次判断，如果用户输入的工号是全数字并且姓名是中文才会进行下一步操作
                 self.worker.work_id = eval(work_id) # 获取用户输入的工号
                 """此处工号应为数字"""
-            else: # 否则清楚用户的输入, 让其重新输入
+            else: # 否则清除用户的输入, 让其重新输入
                 self.login_window.workerIdLineEdit.clear()
-                self.login_window.warningLabel2.setText("工号输入错误")
+                self.login_window.warningLabel2.setText("工号格式错误, 必须全为数字") # 提示用户输入错误
             if is_Chinese(name):
-                self.worker.name = name
-            else:
+                self.worker.name = name 
+            else: # 同上
                 self.login_window.nameLineEdit.clear()
-                self.login_window.warningLabel2.setText("姓名格式错误")
+                self.login_window.warningLabel2.setText("姓名格式错误, 只能为中文")
 
-        if work_id.isdigit() and is_Chinese(name):
+        if work_id.isdigit() and is_Chinese(name): # 如果工号和姓名输入正确, 则跳转到下一个界面
             # print(self.worker.work_id)
             # print(self.worker.name)
             self.login_window.stackedWidget_2.setCurrentIndex(1)
@@ -107,29 +109,29 @@ class Ocr_demo():
         cursor.close() # 关闭游标对象
 
 
-    def create_BirthdayandSex(self):  # 用户注册，生日性别
-        year = self.login_window.yearlineEdit.text() # 年份
-        month = self.login_window.monthlineEdit.text() # 月份
-        day = self.login_window.daylineEdit.text() # 日
-        sex = self.login_window.sexlineEdit.text() # 性别
+    def create_BirthdayandSex(self):  # 用户注册第二部分, 生日与性别
+        year = self.login_window.yearlineEdit.text() # 获取用户输入的年份
+        month = self.login_window.monthlineEdit.text() # 获取用户输入的月份
+        day = self.login_window.daylineEdit.text() # 获取用户输入的日期
+        sex = self.login_window.sexlineEdit.text() # 获取用户输入的性别性别
         if year != "" and month != "" and day != "" and sex != "": # 输入不为空
-            if not year.isdigit(): # 判断填写年份格式
+            if not year.isdigit(): # 判断填写年份格式是否正确, 如果不正确, 则会运行下面的代码, 注意这个not
                 self.login_window.yearlineEdit.clear()
-                self.login_window.warningLabel3.setText("年份格式有误")
+                self.login_window.warningLabel3.setText("请输入正确的年份格式")
                 return
             if not month.isdigit() and is_month(month): # 判断月份格式
                 self.login_window.monthlineEdit.clear()
-                self.login_window.warningLabel3.setText("月份格式有误")
+                self.login_window.warningLabel3.setText("请输入正确的月份格式")
                 return
             if not day.isdigit() and is_day(day): # 判断日期格式
                 self.login_window.daylineEdit.clear()
-                self.login_window.warningLabel3.setText("日期格式有误")
+                self.login_window.warningLabel3.setText("请输入正确的日期格式")
                 return
-            if not len(sex) == 1:
+            if not len(sex) == 1 and is_Chinese(sex): # 判断性别格式, 只能是中文且为一个字符
                 self.login_window.sexlineEdit.clear()
                 self.login_window.warningLabel3.setText("性别信息有误")
             if year.isdigit() and month.isdigit() and day.isdigit() and is_month(month) and is_day(day) and len(sex) == 1: # 判断日期格式是否有问题
-                if len(self.login_window.monthlineEdit.text()) != 2: # 在月份前面补0
+                if len(self.login_window.monthlineEdit.text()) != 2: # 在月份前面补0, 补0的原因是MySQL的日期格式有要求, 必须是"xxxx-xx-xx"
                     month = "0" + month
                 if len(self.login_window.daylineEdit.text()) != 2: # 在日期前面补0
                     day = "0" + day
@@ -140,10 +142,10 @@ class Ocr_demo():
                 self.login_window.stackedWidget_2.setCurrentIndex(2) # 跳转到下一界面
 
 
-    # 创建用户账号与密码
+    # 用户注册第三部分, 创建用户账号与密码
     def create_UserandPassword(self):
-        """缺少判断用户权限密码"""
-        if self.login_window.createUserLineEdit.text() != "" and self.login_window.createPassLineEdit.text() != "":
+        """缺少判断用户的权限密码, 后期再加"""
+        if self.login_window.createUserLineEdit.text() != "" and self.login_window.createPassLineEdit.text() != "": # 输入的账号和密码不为空
             self.worker.user = self.login_window.createUserLineEdit.text() # 获取用户
             self.worker.password = self.login_window.createPassLineEdit.text() # 获取密码
 
@@ -161,13 +163,13 @@ class Ocr_demo():
             cursor.close()
             self.login_window.stackedWidget.setCurrentIndex(0)
 
-    def log_in(self):  # 密码登录
+    # 登录功能
+    def log_in(self):  
         # 获取用户的账号与密码
         user = self.login_window.user_linedit.text()
-        print(user)
+        # print(user)
         password = self.login_window.password_linedit.text()
         # print(type(user)) type函数打印变量数据类型
-        # 连接数据库
         # 创建游标，执行mysql代码
         cursor = self.db.cursor()
         # 写mysql语句
@@ -176,22 +178,22 @@ class Ocr_demo():
         respnese2 = cursor.execute(sql)  # 返回查询结果的数量，如果是0，则表示什么都没有查到
         if respnese2 != 0:
             response1 = cursor.fetchall()#返回sql语句，返回查询的结果
-            password_right = response1[0][0]
-            name_right = response1[0][1] # 用户的名字
+            password_right = response1[0][0] # 用户的正确密码
+            name_right = response1[0][1] # 用户的正确名字
             # print(name_right)
             # print(password_right)
-            if password == password_right:
-                if self.login_window.radioButton.isChecked():
-                    self.main_window.show()
+            if password == password_right: # 如果密码正确
+                if self.login_window.radioButton.isChecked(): # 如果选择了在线模式
+                    self.main_window.show() # 打开主界面
                     self.login_window.close()
-                elif self.login_window.radioButton_2.isChecked():
+                elif self.login_window.radioButton_2.isChecked(): # 如果选择了离线模式
                     self.main_window.show()
                     self.login_window.close()
                     self.main_window.toCamButton.setEnabled(False) # 将toCamButton按钮设置为不可用
                     self.main_window.toCamButton.setDisabled(True) # 将按钮变成灰色
                     self.main_window.openCamButton.setEnabled(False) # 将openCamButton按钮设置为不可用
                     self.main_window.openCamButton.setDisabled(True) # 将openCamButton按钮设置为灰色
-                else:
+                else: # 如果没有选择模式
                     self.login_window.warningLabel.setText("请选择模式")
                     cursor.close()
                     return
@@ -215,13 +217,13 @@ class Ocr_demo():
         # 创建选择文件窗口
         file_dialog = QFileDialog()
         # 支持三种格式
-        file_dialog.setNameFilter("(*.png *.jpg *bmp)")  # 设置选取的图片的格式，绝对路径没有中文
+        file_dialog.setNameFilter("(*.png *.jpg *bmp)")  # 设置选取的图片的格式，绝对路径不能有中文
         if file_dialog.exec_():
             try:
                 self.image_path = file_dialog.selectedFiles()[0] # 获取选取图片的路径
                 self.main_window.mainScreen.setScaledContents(True)  # 设置放的图片和label一样大
-                self.main_window.img = cv2.imread(self.image_path)
-                self.main_window.img_copy = self.main_window.img.copy()
+                self.main_window.img = cv2.imread(self.image_path) 
+                self.main_window.img_copy = self.main_window.img.copy() # 思考一下为什么需要self.main_window.img_copy
                 height, width, _ = self.main_window.img.shape
                 bytesPerline = 3 * width
                 self.qimg = QImage(self.main_window.img_copy.data, width, height, bytesPerline,
@@ -247,22 +249,22 @@ class Ocr_demo():
             # print(dir_image_name)
             self.dir_image_data = []  # 存储图片数据列表
             try:
-                for image_name in dir_image_name:
+                for image_name in dir_image_name: # 将文件夹图片数据存入dir_iamge_data列表中, 方便后面函数的使用
                     image_path = os.path.join(directory, image_name)
-                    image_data = cv2.imread(image_path)
+                    image_data = cv2.imread(image_path) 
                     self.dir_image_data.append(image_data)
 
             except:
                 print("图片数据读取有问题, 可能存在中文")
 
-            # 选取文件夹中第一张图片作为展示
+            # 选取文件夹中第一张图片作为展示, self.index = 0
             self.main_window.img = self.dir_image_data[self.index]
             self.main_window.img_copy = self.main_window.img.copy()
             height, width, _ = self.main_window.img_copy.shape
             bytesPerline = 3 * width
             self.qimg = QImage(self.main_window.img_copy.data, width, height, bytesPerline,
                                QImage.Format_RGB888).rgbSwapped()
-            self.main_window.mainScreen.setScaledContents(True)
+            self.main_window.mainScreen.setScaledContents(True) # 将图片显示调整到label一下的大小
             self.main_window.mainScreen.setPixmap(QPixmap.fromImage(self.qimg))
             self.main_window.dirScreen.setScaledContents(True)
             self.main_window.dirScreen.setPixmap(QPixmap.fromImage(self.qimg))
@@ -412,14 +414,16 @@ class Ocr_demo():
                                 self.main_window.img_copy.shape[0], QImage.Format_Grayscale8)
             self.main_window.imgprocessScreen.setPixmap(QPixmap.fromImage(self.qimg2))
 
+    # 点击预览只会在小窗口中显示处理好图片, 如果想要在大窗口显示处理好的图片, 需要点击"确认"按钮 
     def image_process_ok(self):
         self.main_window.mainScreen.setPixmap(QPixmap.fromImage(self.qimg2))
 
-    def image_button(self, function):  # 绑定有参数的图像预处理函数，在选择完参数后，点击后可以进行变换
+    # 绑定有参数的图像预处理函数，在选择完参数后，点击后可以进行变换
+    def image_button(self, function):  
         self.main_window.imgprocessScreen.setScaledContents(True)
         # 创建参数字典, 用于之后的传参操作
         self.params_dict = {}
-        # 收集用户填写的参数
+        # 获取用户输入的参数
         for i in range(len(self.ipw.params_list)):
             if self.ipw.lineEdit[i].text().isdigit():
                 self.params_dict[self.ipw.params_list[i]] = eval(self.ipw.lineEdit[i].text())
@@ -427,10 +431,10 @@ class Ocr_demo():
 
         try:
             self.main_window.img_copy = function(self.main_window.img_copy, **self.params_dict)  # 传入字典的方法
-        except:
+        except: # 如果运行有误, 则说明用户输入的参数格式用问题
             # print("参数填入有误")
             self.main_window.imgProcessWarningLabel.setText("Error: 参数输入有误, 或超出正常参数范围")
-            self.ipw.close()
+            self.ipw.close() # 关闭参数输入窗口
             return
         # 关闭参数窗口
         self.ipw.close()
@@ -445,7 +449,7 @@ class Ocr_demo():
                                 self.main_window.img_copy.shape[0], QImage.Format_Grayscale8)
             self.main_window.imgprocessScreen.setPixmap(QPixmap.fromImage(self.qimg2))
 
-    # 摄像头槽函数
+    # 摄像头槽函数:获取摄像头捕捉到的每一帧图片, 并展示
     def set_video(self):
         ret, frame = self.cam.read()
         if ret:
@@ -457,7 +461,7 @@ class Ocr_demo():
 
     # 打开摄像头
     def open_cam(self):
-        self.main_window.camLabel.setScaledContents(True)
+        self.main_window.camLabel.setScaledContents(True) # 调整图片显示大小
         self.main_window.stackedWidget.setCurrentIndex(1) # 跳转到摄像头界面
         self.timer.start() # 开启计时器
 
@@ -472,7 +476,8 @@ class Ocr_demo():
     # 切换主题
     def to_theme(self):
         self.main_window.stackedWidget_2.setCurrentIndex(0)
-
+    
+    # 切换到设置中的安全设置界面
     def to_security(self):
         self.main_window.stackedWidget_2.setCurrentIndex(2)
 
@@ -492,14 +497,14 @@ class Ocr_demo():
 
     # yolo视频检测函数
     def video_decet(self):
-        self.timer.timeout.connect(self.video_object_decetion_image) # 切换成目标识别函数
+        self.timer.timeout.connect(self.video_object_decetion_image) # 将timer绑定的函数切换成带有yolo目标识别函数
 
     # yolo视频目标检测
     def video_object_decetion_image(self):
         ret, frame = self.cam.read()
         imgsz = check_img_size([640, 640], s=self.stride)  # check image size
         if ret:
-            frame = run2(source=frame, model=self.model, img_size=imgsz)
+            frame = run2(source=frame, model=self.model, img_size=imgsz) # 识别出来的结果
             height, width, channel = frame.shape
             bytes_per_line = 3 * width
             qt_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
@@ -525,7 +530,7 @@ class Ocr_demo():
         # 摄像头界面操作
         self.main_window.openCamButton.clicked.connect(self.open_cam)
         self.timer.timeout.connect(self.set_video) # 打开摄像头
-        # self.timer.timeout.connect(self.video_object_decetion) # 视频目标检测
+  
         self.main_window.camsearchButton.clicked.connect(self.video_decet)
         self.main_window.stopButton.clicked.connect(self.stop_cam) # 停止摄像头
         self.main_window.playButton.clicked.connect(self.start_cam) # 开启摄像头
@@ -533,7 +538,7 @@ class Ocr_demo():
         self.main_window.themeButton.clicked.connect(self.to_theme)
         self.main_window.safeButton.clicked.connect(self.to_security)
         self.main_window.generalButton.clicked.connect(self.to_general)
-        # 模型识别
+        # 模型识别样例图片
         self.main_window.moudleokButton.clicked.connect(self.run_model)
 
 if __name__ == '__main__':
