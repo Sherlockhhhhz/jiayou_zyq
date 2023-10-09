@@ -58,13 +58,15 @@ class Ocr_demo():
                 password='123456',
                 database='db1'
             )
+        
+        self.weights = '../yolov5/yolov5s.pt' # yolo预训练网络参数
+        self.dnn = False # yolo参数
+        self.data = '../yolov5/data/coco128.yaml' # yolo神经网络训练集
+        self.half = False # yolo参数
+        self.model = DetectMultiBackend(self.weights, dnn=self.dnn, data=self.data, fp16=self.half) # yolo模型
+        self.stride, self.names, self.pt = self.model.stride, self.model.names, self.model.pt # yolo参数
+
         self.connect() # 运行控件连接函数
-        self.weights = '../yolov5/yolov5s.pt' # 预训练网络参数
-        self.dnn = False
-        self.data = '../yolov5/data/coco128.yaml' # 神经网络训练集
-        self.half = False
-        self.model = DetectMultiBackend(self.weights, dnn=self.dnn, data=self.data, fp16=self.half)
-        self.stride, self.names, self.pt = self.model.stride, self.model.names, self.model.pt
 
 
     def create_WorkIdandName(self):  # 用户注册第一部分 工号与姓名
@@ -478,20 +480,21 @@ class Ocr_demo():
     def to_general(self):
         self.main_window.stackedWidget_2.setCurrentIndex(1)
 
-    # yolo识别函数
+    # yolo识别函数，只能识别选择的图片
     def run_model(self):
         imgsz = check_img_size([640, 640], s=self.stride)  # check image size
-        self.img_res = run2(source=self.main_window.img_copy, model=self.model, img_size=imgsz)
+        self.img_res = run2(source=self.main_window.img_copy, model=self.model, img_size=imgsz) 
         height, width, channel = self.img_res.shape
         bytes_per_line = 3 * width
         qt_image = QImage(self.img_res.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
         pixmap = QPixmap.fromImage(qt_image)
         self.main_window.mainScreen.setPixmap(pixmap) # 显示结果
 
+    # yolo视频检测函数
     def video_decet(self):
         self.timer.timeout.connect(self.video_object_decetion_image) # 切换成目标识别函数
 
-    # 视频目标检测
+    # yolo视频目标检测
     def video_object_decetion_image(self):
         ret, frame = self.cam.read()
         imgsz = check_img_size([640, 640], s=self.stride)  # check image size
