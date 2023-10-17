@@ -17,53 +17,47 @@ class MainWindow(QWidget):
         self.img=None
         self.img_copy = None
         self.image_cut = None
+        self.frame = None
         super(MainWindow, self).__init__()
         self.setupUi()
-        # self.show()
+        self.show()
         self.connect()
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Enter or event.key() == QtCore.Qt.Key_Return:
-                if self.mainScreen.pos == []:
+
+                if self.mainScreen.pos == [] and self.camLabel.pos== []:
                         print("截图失败")
                 else:
-                      self.imgprocessScreen.setStyleSheet("#imgprocessScreen{\n"
-                                                                        "\n"
-                                                                        "border:2px solid orange;\n"
-                                                                        "\n"
-                                                                        "}")
+                        print(self.stackedWidget.currentIndex())
+                        if self.stackedWidget.currentIndex() ==0:
+                              self.imgprocessScreen.setStyleSheet("#imgprocessScreen{\n"
+                                                                                "\n"
+                                                                                "border:2px solid orange;\n"
+                                                                                "\n"
+                                                                                "}")
 
-                      res = self.mainScreen.pos
-                      label_width = self.mainScreen.width()
-                      label_height =self.mainScreen.height()
-                      image = cv2.resize(self.img_copy, (label_width, label_height))
-                      self.image_cut = image[res[0][1]:res[1][1],res[0][0]:res[1][0]]
-                      print(self.image_cut)
-                      self.cutImgScreen.setScaledContents(True)
-                      height, width, _ = self.image_cut.shape
-                      bytesPerline = 3 * width
-                      qimg_cut = QImage(self.image_cut.copy().data, width, height, bytesPerline,
-                                         QImage.Format_RGB888).rgbSwapped()
-                      self.cutImgScreen.setPixmap(QPixmap.fromImage(qimg_cut))
-        print(1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                              res = self.mainScreen.pos
+                              label_width = self.mainScreen.width()
+                              label_height =self.mainScreen.height()
+                              image = cv2.resize(self.img_copy, (label_width, label_height))
+                              self.image_cut = image[res[0][1]:res[1][1],res[0][0]:res[1][0]]
+                              print(self.image_cut)
+                              self.cutImgScreen.setScaledContents(True)
+                              height, width, _ = self.image_cut.shape
+                              bytesPerline = 3 * width
+                              qimg_cut = QImage(self.image_cut.copy().data, width, height, bytesPerline,
+                                                 QImage.Format_RGB888).rgbSwapped()
+                              self.cutImgScreen.setPixmap(QPixmap.fromImage(qimg_cut))
+                              print(0)
+                        elif self.stackedWidget.currentIndex() == 1:
+                                res = self.camLabel.pos
+                                label_width = self.camLabel.width()
+                                label_height = self.camLabel.height()
+                                image = cv2.resize(self.frame, (label_width, label_height))
+                                self.image_cut = image[res[0][1]:res[1][1], res[0][0]:res[1][0]]
+                                print(self.image_cut)
+                                print(1)
     def setupUi(self):
         self.setObjectName("Form")
         self.resize(1171, 771)
@@ -1227,7 +1221,7 @@ class MainWindow(QWidget):
 "background-color:white;\n"
 "}")
         self.widget_17.setObjectName("widget_17")
-        self.camLabel = QtWidgets.QLabel(self.widget_17)
+        self.camLabel = MyLabel(self.widget_17)
         self.camLabel.setGeometry(QtCore.QRect(27, 9, 710, 665))
         self.camLabel.setStyleSheet("#camLabel{\n"
 "border:1px solid;\n"
@@ -1419,19 +1413,22 @@ class MainWindow(QWidget):
         icon14.addPixmap(QtGui.QPixmap(":/images/images/trash.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.cleanButton.setIcon(icon14)
         self.cleanButton.setObjectName("cleanButton")
-        self.databaseButton = QtWidgets.QPushButton(self.logpage)
+        self.databaseButton = QtWidgets.QComboBox(self.logpage)
         self.databaseButton.setGeometry(QtCore.QRect(490, 20, 111, 31))
         self.databaseButton.setStyleSheet("#databaseButton{\n"
 "background-color:white;\n"
 "border:1px solid;\n"
+"combobox-popup:0;\n"
 "}\n"
 "#databaseButton::hover{\n"
 "background-color:gray;\n"
 "color:white;\n"
 "}")
-        icon15 = QtGui.QIcon()
-        icon15.addPixmap(QtGui.QPixmap(":/images/images/数据库,数据.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.databaseButton.setIcon(icon15)
+        self.databaseButton.addItem("")
+        self.databaseButton.setItemText(0, "切换数据库")
+
+
+
         self.databaseButton.setObjectName("databaseButton")
         self.sortcomboBox = QtWidgets.QComboBox(self.logpage)
         self.sortcomboBox.setGeometry(QtCore.QRect(280, 20, 51, 31))
@@ -2430,7 +2427,7 @@ class MainWindow(QWidget):
         self.widthheightLabel.setText(_translate("Form", "710 * 665"))
         self.loadButton.setText(_translate("Form", "导出文件"))
         self.cleanButton.setText(_translate("Form", "清空日志"))
-        self.databaseButton.setText(_translate("Form", "切换数据库"))
+        # self.databaseButton.setText(_translate("Form", "切换数据库"))
         self.sortButton.setText(_translate("Form", "排序"))
         self.searchlineEdit.setPlaceholderText(_translate("Form", "搜索"))
         self.radioButton_6.setText(_translate("Form", "System Default"))
