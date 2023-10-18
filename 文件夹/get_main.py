@@ -570,6 +570,32 @@ class Ocr_demo():
             qt_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
             pixmap = QPixmap.fromImage(qt_image)
             self.main_window.camLabel.setPixmap(pixmap)
+    def sql_check(self):
+        cursor = self.db.cursor()
+        if self.main_window.databaseButton.currentText() == "切换数据库":
+            query = "SHOW TABLES"
+            cursor.execute(query)
+            tables = cursor.fetchall()
+            for i in range(len(tables)):
+                self.main_window.databaseButton.addItem("")
+                self.main_window.databaseButton.setItemText(i+1,tables[i][0])
+        else:
+            table_name = self.main_window.databaseButton.currentText()
+            sql3 = f"select * from {table_name}"
+            sql4 = f"show columns from {table_name}"
+            cursor.execute(sql3)
+
+            data = cursor.fetchall()
+            cursor.execute(sql4)
+            data1 = cursor.fetchall()
+            print(data)
+            print(data1)
+
+
+
+
+
+
 
     # 控件连接函数
     def connect(self):
@@ -599,7 +625,7 @@ class Ocr_demo():
         self.main_window.roieditButton.clicked.connect(self.videp_catch)
         # 模型识别样例图片
         self.main_window.moudleokButton.clicked.connect(self.run_model)
-
+        self.main_window.db_changeButton.clicked.connect(self.sql_check)
     def close_db(self):
         if not self.main_window.close():
             self.db.close()
@@ -608,6 +634,16 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     login_demo = Ocr_demo()
     sys.exit(app.exec_())
+
+
+
+
+
+
+
+
+
+
 
 
 
