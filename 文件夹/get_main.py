@@ -2,23 +2,11 @@ import io
 import sys
 import time
 from pathlib import Path
-
-import cv2
 import numpy as np
-from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap, QPainter, QColor, QFont, QIcon, QImage
+import pandas as pd
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QLabel, QDesktopWidget, QHBoxLayout, QFormLayout, \
-    QPushButton, QLineEdit, QRadioButton, QToolBar, QFileDialog
+    QPushButton, QLineEdit, QRadioButton, QToolBar, QFileDialog, QTableWidgetItem
 from PyQt5.QtCore import *
-from login import Login_window
-import pymysql
-from new_mainwindow import MainWindow
-import os
-from Screen_shot import MyLabel
-import image_process_methods as IPM
-import image_window as IPW
-from work import worker
 import sys
 import cv2
 from PyQt5 import QtWidgets
@@ -56,7 +44,20 @@ def is_day(day):
     return 1 <= eval(day) <= 31
 
 
-#
+def show_pic(dis, img_source, is_gray = False):
+    height, width, _ = img_source.shape
+    bytesPerline = 3 * width
+    if not is_gray:
+        qimg = QImage(img_source.data.copy(), width, height, bytesPerline,
+                           QImage.Format_RGB888).rgbSwapped()
+    else:
+        qimg = QImage(img_source.data.copy(), width, height, bytesPerline,
+                      QImage.Format_Grayscale8).rgbSwapped()
+    for d in dis:
+        d.setScaledContents(True)
+        d.mainScreen.setPixmap(QPixmap.fromImage(qimg))
+    
+
 class Ocr_demo():
     def __init__(self):
         self.login_window = Login_window()  # 登录界面窗口
@@ -69,7 +70,7 @@ class Ocr_demo():
         self.db = pymysql.connect(  # 连接数据库, 这里作为属性的原因是, 有很多函数都需要连接数据库, 直接作为属性, 可以减小程序开销
             host='localhost',
             user="root",
-            password='123456',
+            password='123456789',
             database='db1'
         )
 
@@ -81,6 +82,7 @@ class Ocr_demo():
         self.stride, self.names, self.pt = self.model.stride, self.model.names, self.model.pt  # yolo stride, names, pt参数, 其中names是yolo预训练数据集的类名(dog啊, cat啊巴拉巴拉的)
 
         self.connect()  # 运行控件连接函数
+
 
     def create_WorkIdandName(self):  # 用户注册第一部分 工号与姓名
         # 新建一个游标对象，用来执行sql语句
@@ -108,8 +110,6 @@ class Ocr_demo():
                 self.login_window.workerIdLineEdit.clear()
                 self.login_window.warningLabel2.setText("工号格式错误, 必须全为数字")  # 提示用户输入错误
         if work_id.isdigit():  # 如果工号和姓名输入正确, 则跳转到下一个界面
-            # print(self.worker.work_id)
-            # print(self.worker.name)
             self.login_window.stackedWidget_2.setCurrentIndex(1)
 
         cursor.close()  # 关闭游标对象
@@ -188,8 +188,6 @@ class Ocr_demo():
             password_right = response1[0][0]  # 用户的正确密码
             name_right = response1[0][1]  # 用户的正确名字
             self.worker.name = name_right
-            # print(name_right)
-            # print(password_right)
             if password == password_right:  # 如果密码正确
                 if self.login_window.radioButton.isChecked():  # 如果选择了在线模式
                     self.main_window.show()  # 打开主界面
@@ -231,8 +229,7 @@ class Ocr_demo():
             return
         # 关闭游标
         cursor.close()
-        # 关闭连接
-        # self.db.close()
+
 
     # 打开样例照片
     def open_image(self):
@@ -247,10 +244,7 @@ class Ocr_demo():
                 self.main_window.img = cv2.imread(self.image_path)
                 self.main_window.img_copy = self.main_window.img.copy()  # 思考一下为什么需要self.main_window.img_copy
                 height, width, _ = self.main_window.img.shape
-                bytesPerline = 3 * width
-                self.qimg = QImage(self.main_window.img_copy.data, width, height, bytesPerline,
-                                   QImage.Format_RGB888).rgbSwapped()
-                self.main_window.mainScreen.setPixmap(QPixmap.fromImage(self.qimg))
+                show_pic([self.main_window.mainScreen], self.main_window.img_copy)
                 if self.main_window.imgprocessSaveButton.isChecked():
                     pass
             except:
@@ -284,14 +278,9 @@ class Ocr_demo():
             # 选取文件夹中第一张图片作为展示, self.index = 0
             self.main_window.img = self.dir_image_data[self.index]
             self.main_window.img_copy = self.main_window.img.copy()
-            height, width, _ = self.main_window.img_copy.shape
-            bytesPerline = 3 * width
-            self.qimg = QImage(self.main_window.img_copy.data, width, height, bytesPerline,
-                               QImage.Format_RGB888).rgbSwapped()
-            self.main_window.mainScreen.setScaledContents(True)  # 将图片显示调整到label一下的大小
-            self.main_window.mainScreen.setPixmap(QPixmap.fromImage(self.qimg))
-            self.main_window.dirScreen.setScaledContents(True)
-            self.main_window.dirScreen.setPixmap(QPixmap.fromImage(self.qimg))
+            show_pic([self.main_window.mainScreen, self.main_window.dirScreen], self.main_window.img_copy)
+           
+        
 
     # 向上选取图片
     def up_image(self):
@@ -300,14 +289,7 @@ class Ocr_demo():
             self.index = 0
         self.main_window.img = self.dir_image_data[self.index]
         self.main_window.img_copy = self.main_window.img.copy()
-        height, width, _ = self.main_window.img_copy.shape
-        bytesPerline = 3 * width
-        self.qimg = QImage(self.main_window.img_copy.data, width, height, bytesPerline,
-                           QImage.Format_RGB888).rgbSwapped()
-        self.main_window.mainScreen.setScaledContents(True)
-        self.main_window.mainScreen.setPixmap(QPixmap.fromImage(self.qimg))
-        self.main_window.dirScreen.setScaledContents(True)
-        self.main_window.dirScreen.setPixmap(QPixmap.fromImage(self.qimg))
+        show_pic([self.main_window.mainScreen, self.main_window.dirScreen], self.main_window.img_copy)
 
     # 向下选取图片
     def down_image(self):
@@ -316,14 +298,7 @@ class Ocr_demo():
             self.index = len(self.dir_image_data) - 1
         self.main_window.img = self.dir_image_data[self.index]
         self.main_window.img_copy = self.main_window.img.copy()
-        height, width, _ = self.main_window.img_copy.shape
-        bytesPerline = 3 * width
-        self.qimg = QImage(self.main_window.img_copy.data, width, height, bytesPerline,
-                           QImage.Format_RGB888).rgbSwapped()
-        self.main_window.mainScreen.setScaledContents(True)
-        self.main_window.mainScreen.setPixmap(QPixmap.fromImage(self.qimg))
-        self.main_window.dirScreen.setScaledContents(True)
-        self.main_window.dirScreen.setPixmap(QPixmap.fromImage(self.qimg))
+        show_pic([self.main_window.mainScreen, self.main_window.dirScreen], self.main_window.img_copy)
 
     # 图片预处理
     def image_process(self):
@@ -427,16 +402,11 @@ class Ocr_demo():
                 lambda: self.image_button(IPM.convert_text_to_black_sharpen_and_denoise_with_outline))
             return
             # 表示图像为彩色
-        self.main_window.imgprocessScreen.setScaledContents(True)
         if self.main_window.img_copy.ndim == 3:
-            self.qimg2 = QImage(self.main_window.img_copy.data, self.main_window.img_copy.shape[1],
-                                self.main_window.img_copy.shape[0], QImage.Format_BGR888)
-            self.main_window.imgprocessScreen.setPixmap(QPixmap.fromImage(self.qimg2))
+            show_pic([self.main_window.mainScreen], self.main_window.img_copy)
             # 表示图像为灰色
         else:
-            self.qimg2 = QImage(self.main_window.img_copy.data, self.main_window.img_copy.shape[1],
-                                self.main_window.img_copy.shape[0], QImage.Format_Grayscale8)
-            self.main_window.imgprocessScreen.setPixmap(QPixmap.fromImage(self.qimg2))
+            show_pic([self.main_window.mainScreen], self.main_window.img_copy, True)
         self.imgprocess_save()
 
     # 保存图片
@@ -495,25 +465,18 @@ class Ocr_demo():
         self.ipw.close()
         # 展现图像
         if self.main_window.img_copy.ndim == 3:
-            self.qimg2 = QImage(self.main_window.img_copy.data, self.main_window.img_copy.shape[1],
-                                self.main_window.img_copy.shape[0], QImage.Format_BGR888)
-            self.main_window.imgprocessScreen.setPixmap(QPixmap.fromImage(self.qimg2))
+            show_pic([self.main_window.imgprocessScreen], self.main_window.img_copy)
             # 表示图像为灰色
         else:
-            self.qimg2 = QImage(self.main_window.img_copy.data, self.main_window.img_copy.shape[1],
-                                self.main_window.img_copy.shape[0], QImage.Format_Grayscale8)
-            self.main_window.imgprocessScreen.setPixmap(QPixmap.fromImage(self.qimg2))
+            show_pic([self.main_window.imgprocessScreen], self.main_window.img_copy, True)
 
     # 摄像头槽函数:获取摄像头捕捉到的每一帧图片, 并展示
     def set_video(self):
         ret, self.main_window.frame = self.cam.read()
 
         if ret:
-            height, width, channel = self.main_window.frame.shape
-            bytes_per_line = 3 * width
-            qt_image = QImage(self.main_window.frame.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
-            pixmap = QPixmap.fromImage(qt_image)
-            self.main_window.camLabel.setPixmap(pixmap)
+            show_pic([self.main_window.camLabel], self.main_window.img_copy)
+
 
     # 打开摄像头
     def open_cam(self):
@@ -549,11 +512,8 @@ class Ocr_demo():
     def run_model(self):
         imgsz = check_img_size([640, 640], s=self.stride)  # check image size
         self.img_res = run2(source=self.main_window.img_copy, model=self.model, img_size=imgsz)
-        height, width, channel = self.img_res.shape
-        bytes_per_line = 3 * width
-        qt_image = QImage(self.img_res.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
-        pixmap = QPixmap.fromImage(qt_image)
-        self.main_window.mainScreen.setPixmap(pixmap)  # 显示结果
+        show_pic([self.main_window.mainScreen], self.img_res)
+
 
     # yolo视频检测函数
     def video_decet(self):
@@ -565,11 +525,8 @@ class Ocr_demo():
         imgsz = check_img_size([640, 640], s=self.stride)  # check image size
         if ret:
             frame = run2(source=frame, model=self.model, img_size=imgsz)  # 识别出来的结果
-            height, width, channel = frame.shape
-            bytes_per_line = 3 * width
-            qt_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
-            pixmap = QPixmap.fromImage(qt_image)
-            self.main_window.camLabel.setPixmap(pixmap)
+            show_pic([self.main_window.camLabel], self.main_window.img_copy)
+
     def sql_check(self):
         cursor = self.db.cursor()
         if self.main_window.databaseButton.currentText() == "切换数据库":
@@ -585,18 +542,33 @@ class Ocr_demo():
             sql4 = f"show columns from {table_name}"
             cursor.execute(sql3)
 
-            data = cursor.fetchall()
+            self.data = cursor.fetchall()
             cursor.execute(sql4)
-            data1 = cursor.fetchall()
-            print(data)
-            print(data1)
+            columns = cursor.fetchall()
+            self.columns_list = []
+            data_row = len(self.data[0])
+            self.main_window.logtableWidget.setColumnCount(data_row)
+            self.main_window.logtableWidget.clear()
+            for i in range(len(columns)):
+                self.columns_list.append(columns[i][0])
+            self.main_window.logtableWidget.setHorizontalHeaderLabels(self.columns_list)
+            for row in range(len(self.data)):
+                self.main_window.logtableWidget.insertRow(row)
+                for col in range(len(self.data[row])):
+                    item = QTableWidgetItem(str(self.data[row][col]))
+                    self.main_window.logtableWidget.setItem(row,col, item)
 
+            cursor.close()
+    def sql_clear(self):
+        self.main_window.logtableWidget.clear()
+    def csv_file(self):
+        csv_data = pd.DataFrame(columns = self.columns_list, index = None)
 
-
-
-
-
-
+        for row in range(len(self.data)):
+            for col in range(len(self.data[row])):
+                csv_data.loc[row,self.columns_list[col]] = self.data[row][col]
+        csv_data.to_csv(f"./data/{time.time()}.csv",index=False)
+        
     # 控件连接函数
     def connect(self):
         self.login_window.login_button.clicked.connect(self.log_in)  # 登录功能
@@ -626,33 +598,10 @@ class Ocr_demo():
         # 模型识别样例图片
         self.main_window.moudleokButton.clicked.connect(self.run_model)
         self.main_window.db_changeButton.clicked.connect(self.sql_check)
-    def close_db(self):
-        if not self.main_window.close():
-            self.db.close()
+        self.main_window.cleanButton.clicked.connect(self.sql_clear)
+        self.main_window.loadButton.clicked.connect(self.csv_file)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     login_demo = Ocr_demo()
     sys.exit(app.exec_())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
