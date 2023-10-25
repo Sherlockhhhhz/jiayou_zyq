@@ -1,0 +1,106 @@
+mjimport torch
+import torchvision
+import torch.nn as nn
+import torch.optim as optim
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+
+#初始化网络参数
+device = "cuda:0" if torch.cuda.is_available() else "cpu" #如果网络能在GPU中训练，就使用GPU；否则使用CPU进行训练
+EPOCHS = 20
+lr = 0.001
+input_num = 784
+hidden_num = 500
+output_num = 10
+BATCH_SIZE = 100
+
+#构建数据集
+transform = torchvision.transforms.Compose(
+    [torchvision.transforms.ToTensor(),
+     torchvision.transforms.Normalize(mean = [0.5], std = [0.5])])#这个函数包括了两个操作：将图片转换为张量，以及将图片进行归一化处理
+path = '../data/'  #数据集下载后保存的目录
+#下载训练集和测试集
+trainData = torchvision.datasets.MNIST(path, train = True, transform = transform, download = True)
+testData = torchvision.datasets.MNIST(path, train = False, transform = transform)
+#构建数据集和测试集的DataLoader
+train_loader = torch.utils.data.DataLoader(dataset = trainData,batch_size = BATCH_SIZE,shuffle = True)
+test_loader = torch.utils.data.DataLoader(dataset = testData,batch_size = BATCH_SIZE)
+
+#构建网络
+class NeuralNet(nn.Module):#继承 torch 的module （固定）
+    # 定义层的信息，input_num多少个输入, hidden_num每层神经元, output_num多少个输出
+    def __init__(self, input_num, hidden_num, output_num):
+        super(NeuralNet, self).__init__()#继承__init__功能 （固定）
+        #定义每层用什么样的形式（自己完成）
+        
+
+
+    # 定义神经网络前向传递的过程，把__init__中的层信息一个一个的组合起来
+    def forward(self,x): # x是输入信息也是module中的forward功能
+        #正向传播输入值，神经网络分析出输出值
+# 自己完成
+       
+
+model = NeuralNet(input_num, hidden_num, output_num) # 类实例化
+print(model.to(device))
+
+lossF = nn.CrossEntropyLoss() # 损失函数
+optimizer = optim.Adam(model.parameters(), lr=lr) # 优化函数
+
+# 存储训练过程
+history = {'Test Loss': [], 'Test Accuracy': []}
+# 训练模型
+for epoch in range(1, EPOCHS + 1):
+    processBar = tqdm(train_loader, unit='step')
+    model.train(True)
+    for step, (trainImgs, labels) in enumerate(processBar): # 返回值和索引，这里索引即为标签
+        trainImgs = trainImgs.reshape(-1, 28 * 28).to(device) # -1指模糊控制的意思，即固定784列，不知多少行
+        labels = labels.to(device)
+        model.zero_grad()
+        # 前向传播
+        outputs = model(trainImgs)
+        loss = lossF(outputs, labels)
+
+        predictions = torch.argmax(outputs, dim=1)
+        accuracy = torch.sum(predictions == labels) / labels.shape[0]
+        # 反向传播和优化
+        loss.backward()
+        optimizer.step()
+        processBar.set_description("[%d/%d] Loss: %.4f, Acc: %.4f" % (epoch, EPOCHS, loss.item(), accuracy.item()))
+
+        # 测试模型
+        if step == len(processBar) - 1:
+            correct, totalLoss = 0, 0
+            model.train(False)
+            for testImgs, labels in test_loader:
+                testImgs = testImgs.reshape(-1, 28 * 28).to(device)
+                labels = labels.to(device)
+                outputs = model(testImgs)
+                loss = lossF(outputs, labels)
+                predictions = torch.argmax(outputs, dim=1)
+                totalLoss += loss
+                correct += torch.sum(predictions == labels)
+            testAccuracy = correct / (BATCH_SIZE * len(test_loader))
+            testLoss = totalLoss / len(test_loader)
+            history['Test Loss'].append(testLoss.item())
+            history['Test Accuracy'].append(testAccuracy.item())
+            processBar.set_description("[%d/%d] Loss: %.4f, Acc: %.4f, Test Loss: %.4f, Test Acc: %.4f" % (epoch, EPOCHS, loss.item(), accuracy.item(), testLoss.item(),testAccuracy.item()))
+    processBar.close()
+
+#对测试Loss进行可视化
+plt.plot(history['Test Loss'],label = 'Test Loss')
+plt.legend(loc='best')
+plt.grid(True)
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.show()
+#对测试准确率进行可视化
+plt.plot(history['Test Accuracy'],color = 'red',label = 'Test Accuracy')
+plt.legend(loc='best')
+plt.grid(True)
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.show()
+
+# torch.save(model, './model.pth')
+
