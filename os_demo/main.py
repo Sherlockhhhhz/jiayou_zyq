@@ -157,7 +157,7 @@ class Ocr_demo():
             cursor.close()
             self.login_window.stackedWidget.setCurrentIndex(0)
 
-    # 登录功能
+    # 登录
     def log_in(self):
         # 获取用户的账号与密码
         user = self.login_window.user_linedit.text()
@@ -207,16 +207,15 @@ class Ocr_demo():
                     self.login_window.warningLabel.setText("请选择模式")
                     return
             else:
-                # print("账号或密码出现错误")
                 self.login_window.warningLabel.setText("账号或者密码错误")
                 return
         else:
-            # print("账号不存在")
             self.login_window.warningLabel.setText("输入账号不存在")
             return
         # 关闭游标
         cursor.close()
 
+    # 图片像展示
     def show_pic(self, dis, img_source):
         height, width, _ = img_source.shape
         bytesPerline = 3 * width
@@ -225,8 +224,10 @@ class Ocr_demo():
 
         for d in dis:
             d.setScaledContents(True)
+
             d.setPixmap(QPixmap.fromImage(self.qimg))
 
+    # 灰色图像展示
     def show_gray_pic(self, dis):
         height, width = self.main_window.img_copy.shape
         self.qimg = QImage(self.main_window.img_copy.data, width, height,
@@ -249,8 +250,7 @@ class Ocr_demo():
                 self.main_window.img = cv2.imread(self.image_path)
                 self.main_window.img_copy = self.main_window.img.copy()  # 思考一下为什么需要self.main_window.img_copy
                 self.show_pic([self.main_window.mainScreen], self.main_window.img_copy)
-                if self.main_window.imgprocessSaveButton.isChecked():
-                    pass
+
             except:
                 print("图像格式有问题")
 
@@ -282,7 +282,7 @@ class Ocr_demo():
             # 选取文件夹中第一张图片作为展示, self.index = 0
             self.main_window.img = self.dir_image_data[self.index]
             self.main_window.img_copy = self.main_window.img.copy()
-            self.show_pic([self.main_window.mainScreen, self.main_window.dirScreen], self.main_window.img_copy, is_gray=False)
+            self.show_pic([self.main_window.mainScreen, self.main_window.dirScreen], self.main_window.img_copy)
 
 
 
@@ -333,56 +333,48 @@ class Ocr_demo():
             try:
                 self.main_window.img_copy = IPM.mean_filter(self.main_window.img_copy)
             except:
-                # print("均值滤波操作出现问题")
                 self.main_window.imgProcessWarningLabel.setText("Error: 均值滤波操作有误")
                 return
         elif method == "高斯滤波":
             try:
                 self.main_window.img_copy = IPM.gaussian_filter(self.main_window.img_copy)
             except:
-                # print("高斯滤波操作出现问题")
                 self.main_window.imgProcessWarningLabel.setText("Error: 高斯滤波操作有误")
                 return
         elif method == "腐蚀":
             try:
                 self.main_window.img_copy = IPM.erode_image(self.main_window.img_copy)
             except:
-                # print("腐蚀操作出现问题")
                 self.main_window.imgProcessWarningLabel.setText("Error: 腐蚀操作有误")
                 return
         elif method == "膨胀":
             try:
                 self.main_window.img_copy = IPM.dilate_image(self.main_window.img_copy)
             except:
-                # print("膨胀操作出现问题")
                 self.main_window.imgProcessWarningLabel.setText("Error: 膨胀操作有误")
                 return
         elif method == "开运算":
             try:
                 self.main_window.img_copy = IPM.opening(self.main_window.img_copy)
             except:
-                # print("开运算操作出现问题")
                 self.main_window.imgProcessWarningLabel.setText("Error: 开运算操作有误")
                 return
         elif method == "闭运算":
             try:
                 self.main_window.img_copy = IPM.closing(self.main_window.img_copy)
             except:
-                # print("闭运算操作出现问题")
                 self.main_window.imgProcessWarningLabel.setText("Error: 闭运算操作有误")
                 return
         elif method == "RGB转BGR":
             try:
                 self.main_window.img_copy = IPM.rgb_to_bgr(self.main_window.img_copy)
             except:
-                # print("Error: 图像不是RGB格式图像")
                 self.main_window.imgProcessWarningLabel.setText("Error: 图像格式不为BGR格式, 请调整")
                 return
         elif method == "BGR转HSV(需要先转化为BGR图像)":
             try:
                 self.main_window.img_copy = IPM.bgr_to_hsv(self.main_window.img_copy)
             except:
-                # print("Error: 需要将图像先转换成BGR格式")
                 self.main_window.imgProcessWarningLabel.setText("Error: 图像格式不为BGR格式, 请调整")
                 return
         elif method == "平移图像":
@@ -410,6 +402,7 @@ class Ocr_demo():
             self.show_pic([self.main_window.imgprocessScreen], self.main_window.img_copy)
         else:            # 表示图像为灰色
             self.show_gray_pic([self.main_window.imgprocessScreen])
+
         self.imgprocess_save()
 
     # 保存图片
@@ -474,14 +467,16 @@ class Ocr_demo():
             self.show_pic([self.main_window.imgprocessScreen], self.main_window.img_copy)
             # 表示图像为灰色
         else:
-            self.show_pic([self.main_window.imgprocessScreen], self.main_window.img_copy, True)
+            self.show_pic([self.main_window.imgprocessScreen], self.main_window.img_copy)
+        if self.main_window.imgprocessSaveButton.clicked:
+            self.imgprocess_save() # 保存图片文件至数据库
 
     # 摄像头槽函数:获取摄像头捕捉到的每一帧图片, 并展示
     def set_video(self):
         ret, self.main_window.frame = self.cam.read()
 
         if ret:
-            self.how_pic([self.main_window.camLabel], self.main_window.img_copy)
+            self.show_pic([self.main_window.camLabel], self.main_window.img_copy)
 
 
     # 打开摄像头
@@ -510,6 +505,7 @@ class Ocr_demo():
     def to_general(self):
         self.main_window.stackedWidget_2.setCurrentIndex(1)
 
+    # 摄像头捕捉
     def video_catch(self):
         self.main_window.camLabel.shape = 'rect'
 
