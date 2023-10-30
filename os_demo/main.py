@@ -306,6 +306,9 @@ class Ocr_demo():
 
     # 图片预处理
     def image_process(self):
+        if self.main_window.img_copy is None:
+            self.main_window.imgProcessWarningLabel.setText("Error: 未选择图像")
+            return
         # 如果用户已经进行了截图, 就对截图进行处理
         if self.main_window.image_cut is not None:
             self.main_window.img_copy = self.main_window.image_cut
@@ -403,10 +406,10 @@ class Ocr_demo():
         else:            # 表示图像为灰色
             self.show_gray_pic([self.main_window.imgprocessScreen])
 
-        self.imgprocess_save()
+        self.save_img()
 
     # 保存图片
-    def imgprocess_save(self):
+    def save_img(self):
         if self.main_window.imgprocessSaveButton.isChecked():
             img_binary_data = self.convert_numpy_to_binary(self.main_window.img_copy)
             # 插入数据到数据库
@@ -437,6 +440,9 @@ class Ocr_demo():
 
     # 点击预览只会在小窗口中显示处理好图片, 如果想要在大窗口显示处理好的图片, 需要点击"确认"按钮
     def image_process_ok(self):
+        if self.main_window.img_copy is None:
+            self.main_window.imgProcessWarningLabel.setText("未选择图像")
+            return
         if self.main_window.imgprocessScreen.pixmap():
             self.main_window.mainScreen.setPixmap(QPixmap.fromImage(self.qimg))
         else:
@@ -469,14 +475,14 @@ class Ocr_demo():
         else:
             self.show_pic([self.main_window.imgprocessScreen], self.main_window.img_copy)
         if self.main_window.imgprocessSaveButton.clicked:
-            self.imgprocess_save() # 保存图片文件至数据库
+            self.save_img() # 保存图片文件至数据库
 
     # 摄像头槽函数:获取摄像头捕捉到的每一帧图片, 并展示
     def set_video(self):
-        ret, self.main_window.frame = self.cam.read()
+        ret, frame = self.cam.read()
 
         if ret:
-            self.show_pic([self.main_window.camLabel], self.main_window.img_copy)
+            self.show_pic([self.main_window.camLabel], frame)
 
 
     # 打开摄像头
