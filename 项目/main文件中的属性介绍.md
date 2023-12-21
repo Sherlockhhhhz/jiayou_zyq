@@ -37,7 +37,7 @@ class  Login_window(QWidget):
 
 4. self.index 主要用于我们在文件夹显示窗口中, 向上或向下选取图片。🗽
 
-<img src="../image/index.png"></img>
+<img src="../image/index.bmp"></img>
 
 5. self.db我们的数据库, 其中的参数🗼
 ```sql
