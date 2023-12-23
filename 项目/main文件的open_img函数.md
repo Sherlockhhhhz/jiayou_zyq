@@ -26,7 +26,7 @@
  ```
  因为如果把所有的文件都显示出来, 会很多, 而我们只需要图片格式的文件, 所以我们可以用QFileFialog类自带的setNameFilter函数, 规定我们只显示什么样格式的图片, 此处我们规定只显示.png, .jpg, .bmp, .svg这四种图片格式, 如下图右下角
 
-<img src="../img/11.png"></img>
+<img src="../image/11.bmp"></img>
 
 
 ```python
