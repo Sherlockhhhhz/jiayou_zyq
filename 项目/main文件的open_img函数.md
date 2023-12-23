@@ -42,4 +42,4 @@ if file_dialog.exec_():
 
 `file_dialog.selectedFiles()`函数会返回一个列表, 列表里面的第一个值就是我们所选择图片文件的路径
 
-接着用cv2.imread函数通过文件路径读取出图像的numpy数据, 赋值给img, 然后调用copy()函数生成一个副本赋值给img_copy, 最后再用show_pic(我们自己写的, 详情请看[show_pic]("./main文件的show_pic函数.md"))
+接着用cv2.imread函数通过文件路径读取出图像的numpy数据, 赋值给img, 然后调用copy()函数生成一个副本赋值给img_copy, 最后再用show_pic(我们自己写的, 详情请看[show_pic](./main文件的show_pic函数.md))
