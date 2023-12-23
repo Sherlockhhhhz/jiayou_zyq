@@ -43,4 +43,18 @@ for d in dis:
 ```
 因为有时候, 我们需要把图片放在多个控件上面, 所以这里的`dis`就是你要存放控件的列表, 例如我要将图片放在mainScreen和camLabel上, 这里的dis=[mainScreen, camLabel], 我们会通过for循环依次遍历每个控件, 来放置图片。🎮
 
-`d.setScaledContents(True)`这行代码的作用是使图片所展现的大小跟我们的控件一样。🧦
+`d.setScaledContents(True)`这行代码的作用是使图片所展现的大小跟我们的控件一样
+
+```python
+# 灰色图像展示
+    def show_gray_pic(self,dis,img_source):
+        height, width = img_source.shape
+        self.qimg = QImage(img_source.data, width, height,
+                           QImage.Format_Grayscale8)
+
+        for d in dis:
+            d.setScaledContents(True)
+            d.setPixmap(QPixmap.fromImage(self.qimg))
+
+```
+这里的show_gray_pic方法跟show_pic一个原理, 就只是替换了QImage的最后一个参数。
