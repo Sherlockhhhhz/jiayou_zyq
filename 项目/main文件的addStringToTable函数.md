@@ -1,6 +1,6 @@
 我们在应用界面的下部做了一个输出端
 
-<img src="../img/222.bmp"></img>
+<img src="../image/222.bmp"></img>
 
 当应用报错会识别出来的信息会打印在"终端"上, 这个打印的代码就需要我们来写。首先我们这个终端用的控件是TableWidget, 如名字一样, 它其实就是一个table, 像数据库的表一样, 这个table可以有很多列很多行, 但我们每次只输出一个信息, 像上图一样, 所以我们的table=需要一列, 可以看到下面代码的第2行, setColumnCount函数(set是设置的意思, Column是列的意思, Count是数量的意思), 所以不能看出setColumnCount(1)是用来将我们的table设置为1列。
 
