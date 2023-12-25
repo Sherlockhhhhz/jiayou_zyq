@@ -1,28 +1,24 @@
 import io
 import time
-from pathlib import Path
 import numpy as np
 import pandas as pd
 from PyQt5.QtWidgets import QTableWidgetItem
-from PyQt5.QtCore import *
-import sys
 import cv2
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QApplication, QFileDialog
 from os_demo.windows.login_window import Login_window
 import pymysql
-from os_demo.windows.main_window import MainWindow
+from windows.main_window import MainWindow
 import os
 from os_demo.tools import image_process_methods as IPM
 from os_demo.windows import params_window as IPW
 from work import worker
-from yolov5.detect import run2
-from yolov5.models.common import DetectMultiBackend
-from yolov5.utils.general import check_img_size
+import sys
+sys.path.insert(0, './yolov7')
+sys.path.append("./windows/MvImport")
 
-FILE = Path(__file__).resolve()
-ROOT = FILE.parents[0]  # 当前工作目录
+
 
 # 判断是否是中文
 def is_Chinese(word):
@@ -50,25 +46,16 @@ class Ocr_demo():
         self.main_window = MainWindow()  # 主界面窗口
         self.worker = worker()  # 用户
         self.index = 0  # 索引
-        self.timer = QTimer()  # 计时器
-        self.timer.setInterval(15)  # 设置计时器运行时间间隔
-        self.cam = cv2.VideoCapture(0)  # 摄像头
         try:
             self.db = pymysql.connect(  # 连接数据库, 这里作为属性的原因是, 有很多函数都需要连接数据库, 直接作为属性, 可以减小程序开销
                 host='localhost',
                 user="root",
-                password='123456',
+                password='123456789',
                 database='db1'
             )
         except:
-            self.db = None # 数据库连接失败
+            self.db = None # 数据库连接失
 
-        self.weights = './yolov5/yolov5s.pt'  # yolo预训练网络参数
-        self.dnn = False  # yolo dnn参数
-        self.data = './yolov5/data/coco128.yaml'  # yolo神经网络训练集
-        self.half = False  # yolo half参数
-        self.model = DetectMultiBackend(self.weights, dnn=self.dnn, data=self.data, fp16=self.half)  # yolo模型
-        self.stride, self.names, self.pt = self.model.stride, self.model.names, self.model.pt  # yolo stride, names, pt参数, 其中names是yolo预训练数据集的类名(dog啊, cat啊巴拉巴拉的)
 
         self.connect()  # 运行控件连接函数
 
@@ -163,57 +150,60 @@ class Ocr_demo():
         user = self.login_window.user_linedit.text()
         # print(user)
         password = self.login_window.password_linedit.text()
-        # print(type(user)) type函数打印变量数据类型
-        # 创建游标，执行mysql代码
-        cursor = self.db.cursor()
-        # 写mysql语句
-        sql = f"select password, name from accounts where user = {user}"  # 一定给变量加入单引号，因为sql与python字符串格式不一样
-
-        # 执行sql代码
-        respnese2 = cursor.execute(sql)  # 返回查询结果的数量，如果是0，则表示什么都没有查到
-        cursor.close()
-        if respnese2 != 0:
-            response1 = cursor.fetchall()  # 返回sql语句，返回查询的结果
-            password_right = response1[0][0]  # 用户的正确密码
-            name_right = response1[0][1]  # 用户的正确名字
-            self.worker.name = name_right
-            if password == password_right:  # 如果密码正确
-                if self.login_window.radioButton.isChecked():  # 如果选择了在线模式
-                    self.main_window.show()  # 打开主界面
-                    self.login_window.close()
-                    # 创建用户专属的表
-                    sql1 = f"CREATE TABLE IF NOT EXISTS {self.worker.name}_data ( image_name VARCHAR(255) NOT NULL,image_data LONGBLOB NOT NULL, upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
-                    cursor1 = self.db.cursor()
-                    try:
-                        # 执行sql语句
-                        cursor1.execute(sql1)
-                        # 提交到数据库执行
-                        self.db.commit()
-                        cursor1.close()
-                    except:
-                        # 如果发生错误则回滚
-                        self.db.rollback()
-                        cursor1.close()
-                        return
-
-                elif self.login_window.radioButton_2.isChecked():  # 如果选择了离线模式
-                    self.main_window.show()
-                    self.login_window.close()
-                    self.main_window.toCamButton.setEnabled(False)  # 将toCamButton按钮设置为不可用
-                    self.main_window.toCamButton.setDisabled(True)  # 将按钮变成灰色
-                    self.main_window.openCamButton.setEnabled(False)  # 将openCamButton按钮设置为不可用
-                    self.main_window.openCamButton.setDisabled(True)  # 将openCamButton按钮设置为灰色
-                else:  # 如果没有选择模式
-                    self.login_window.warningLabel.setText("请选择模式")
-                    return
-            else:
-                self.login_window.warningLabel.setText("账号或者密码错误")
-                return
-        else:
-            self.login_window.warningLabel.setText("输入账号不存在")
-            return
-        # 关闭游标
-        cursor.close()
+        if user == "123" and password == "123":
+            self.login_window.close()
+            self.main_window.show()
+        # # print(type(user)) type函数打印变量数据类型
+        # # 创建游标，执行mysql代码
+        # cursor = self.db.cursor()
+        # # 写mysql语句
+        # sql = f"select password, name from accounts where user = {user}"  # 一定给变量加入单引号，因为sql与python字符串格式不一样
+        #
+        # # 执行sql代码
+        # respnese2 = cursor.execute(sql)  # 返回查询结果的数量，如果是0，则表示什么都没有查到
+        # cursor.close()
+        # if respnese2 != 0:
+        #     response1 = cursor.fetchall()  # 返回sql语句，返回查询的结果
+        #     password_right = response1[0][0]  # 用户的正确密码
+        #     name_right = response1[0][1]  # 用户的正确名字
+        #     self.worker.name = name_right
+        #     if password == password_right:  # 如果密码正确
+        #         if self.login_window.radioButton.isChecked():  # 如果选择了在线模式
+        #             self.main_window.show()  # 打开主界面
+        #             self.login_window.close()
+        #             # 创建用户专属的表
+        #             sql1 = f"CREATE TABLE IF NOT EXISTS {self.worker.name}_data ( image_name VARCHAR(255) NOT NULL,image_data LONGBLOB NOT NULL, upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
+        #             cursor1 = self.db.cursor()
+        #             try:
+        #                 # 执行sql语句
+        #                 cursor1.execute(sql1)
+        #                 # 提交到数据库执行
+        #                 self.db.commit()
+        #                 cursor1.close()
+        #             except:
+        #                 # 如果发生错误则回滚
+        #                 self.db.rollback()
+        #                 cursor1.close()
+        #                 return
+        #
+        #         elif self.login_window.radioButton_2.isChecked():  # 如果选择了离线模式
+        #             self.main_window.show()
+        #             self.login_window.close()
+        #             self.main_window.toCamButton.setEnabled(False)  # 将toCamButton按钮设置为不可用
+        #             self.main_window.toCamButton.setDisabled(True)  # 将按钮变成灰色
+        #             self.main_window.openCamButton.setEnabled(False)  # 将openCamButton按钮设置为不可用
+        #             self.main_window.openCamButton.setDisabled(True)  # 将openCamButton按钮设置为灰色
+        #         else:  # 如果没有选择模式
+        #             self.login_window.warningLabel.setText("请选择模式")
+        #             return
+        #     else:
+        #         self.login_window.warningLabel.setText("账号或者密码错误")
+        #         return
+        # else:
+        #     self.login_window.warningLabel.setText("输入账号不存在")
+        #     return
+        # # 关闭游标
+        # cursor.close()
 
     # 图片像展示
     def show_pic(self, dis, img_source):
@@ -228,11 +218,10 @@ class Ocr_demo():
             d.setPixmap(QPixmap.fromImage(self.qimg))
 
     # 灰色图像展示
-    def show_gray_pic(self, dis):
-        height, width = self.main_window.img_copy.shape
-        self.qimg = QImage(self.main_window.img_copy.data, width, height,
+    def show_gray_pic(self,dis,img_source):
+        height, width = img_source.shape
+        self.qimg = QImage(img_source.data, width, height,
                            QImage.Format_Grayscale8)
-
 
         for d in dis:
             d.setScaledContents(True)
@@ -243,7 +232,7 @@ class Ocr_demo():
         # 创建选择文件窗口
         file_dialog = QFileDialog()
         # 支持三种格式
-        file_dialog.setNameFilter("(*.png *.jpg *bmp)")  # 设置选取的图片的格式，绝对路径不能有中文
+        file_dialog.setNameFilter("(*.png *.jpg *bmp *.svg)")  # 设置选取的图片的格式，绝对路径不能有中文
         if file_dialog.exec_():
             try:
                 self.image_path = file_dialog.selectedFiles()[0]  # 获取选取图片的路径
@@ -252,7 +241,21 @@ class Ocr_demo():
                 self.show_pic([self.main_window.mainScreen], self.main_window.img_copy)
 
             except:
-                print("图像格式有问题")
+                self.addStringToTable("Error: 图片格式错误")
+
+    # 在输出端里添加文字
+    def addStringToTable(self, text):
+        # 获取表格的行数
+        rowPosition = self.main_window.tableWidget.rowCount()
+
+        # 插入新的行
+        self.main_window.tableWidget.setColumnCount(1)
+        self.main_window.tableWidget.setRowCount(rowPosition + 1)
+        print(text)
+        # 在新行的第一列中添加表格项
+
+        self.main_window.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(text))
+        self.main_window.tableWidget.setColumnWidth(0, 800)
 
     # 截图功能
     def get_screen(self):
@@ -262,13 +265,14 @@ class Ocr_demo():
     def open_dir(self):
         self.index = 0  # 重置索引=0
         directory = QtWidgets.QFileDialog.getExistingDirectory(None, "选取文件夹")  # 起始路径
+        self.main_window.textBrowser_4.setText(directory)
         if directory:
             dir_files_name = sorted(os.listdir(directory))  # 获取该文件夹下所有文件的名字
             dir_image_name = []  # 存储图片名字列表
             for i in dir_files_name:
-                if i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpg"):  # 提取出复合图片格式的文件
+                if i.endswith(".png") or i.endswith(".bmp") or i.endswith(".jpg") or i.endswith(".svg"):  # 提取出复合图片格式的文件
                     dir_image_name.append(i)
-            # print(dir_image_name)
+
             self.dir_image_data = []  # 存储图片数据列表
             try:
                 for image_name in dir_image_name:  # 将文件夹图片数据存入dir_iamge_data列表中, 方便后面函数的使用
@@ -276,13 +280,14 @@ class Ocr_demo():
                     image_data = cv2.imread(image_path)
                     self.dir_image_data.append(image_data)
 
+
             except:
-                print("图片数据读取有问题, 可能存在中文")
+                self.addStringToTable("Error: 图片文件读取有问题, 可能存在中文")
 
             # 选取文件夹中第一张图片作为展示, self.index = 0
             self.main_window.img = self.dir_image_data[self.index]
             self.main_window.img_copy = self.main_window.img.copy()
-            self.show_pic([self.main_window.mainScreen, self.main_window.dirScreen], self.main_window.img_copy)
+            self.show_pic([self.main_window.dirScreen], self.main_window.img_copy)
 
 
 
@@ -293,7 +298,10 @@ class Ocr_demo():
             self.index = 0
         self.main_window.img = self.dir_image_data[self.index]
         self.main_window.img_copy = self.main_window.img.copy()
-        self.show_pic([self.main_window.mainScreen, self.main_window.dirScreen], self.main_window.img_copy)
+        self.show_pic([self.main_window.dirScreen], self.main_window.img_copy)
+
+    def ok_image(self):
+        self.show_pic([self.main_window.mainScreen], self.main_window.img_copy)
 
     # 向下选取图片
     def down_image(self):
@@ -302,12 +310,12 @@ class Ocr_demo():
             self.index = len(self.dir_image_data) - 1
         self.main_window.img = self.dir_image_data[self.index]
         self.main_window.img_copy = self.main_window.img.copy()
-        self.show_pic([self.main_window.mainScreen, self.main_window.dirScreen], self.main_window.img_copy)
+        self.show_pic([self.main_window.dirScreen], self.main_window.img_copy)
 
     # 图片预处理
     def image_process(self):
         if self.main_window.img_copy is None:
-            self.main_window.imgProcessWarningLabel.setText("Error: 未选择图像")
+            self.addStringToTable("Error: 未选择图像")
             return
         # 如果用户已经进行了截图, 就对截图进行处理
         if self.main_window.image_cut is not None:
@@ -316,95 +324,95 @@ class Ocr_demo():
         method = self.main_window.imgprocesscomboBox.currentText()
         if self.main_window.img_copy is None:
             # print("warning:没有选择照片")
-            self.main_window.imgProcessWarningLabel.setText("Error: 没有选择图像预处理对象")
+            self.addStringToTable("Error: 没有选择图像预处理对象")
             return
         if method == "复原":
             try:
                 self.main_window.img_copy = self.main_window.img.copy()
             except:
                 # print("Warning: 复原图片出现问题, 请重试")
-                self.main_window.imgProcessWarningLabel.setText("Error: 复现图像有误, 请重试")
+                self.addStringToTable("Error: 复现图像有误, 请重试")
                 return
         elif method == "灰度值处理":
             try:
                 self.main_window.img_copy = IPM.process_grayscale(self.main_window.img_copy)
             except:
                 # print("Warning: 已经进行了灰度处理")
-                self.main_window.imgProcessWarningLabel.setText("Error: 当前图像格式无法进行灰度化")
+                self.addStringToTable("Error: 当前图像格式无法进行灰度化")
                 return
         elif method == "均值滤波":
             try:
                 self.main_window.img_copy = IPM.mean_filter(self.main_window.img_copy)
             except:
-                self.main_window.imgProcessWarningLabel.setText("Error: 均值滤波操作有误")
+                self.addStringToTable("Error: 均值滤波操作有误")
                 return
         elif method == "高斯滤波":
             try:
                 self.main_window.img_copy = IPM.gaussian_filter(self.main_window.img_copy)
             except:
-                self.main_window.imgProcessWarningLabel.setText("Error: 高斯滤波操作有误")
+                self.addStringToTable("Error: 高斯滤波操作有误")
                 return
         elif method == "腐蚀":
             try:
                 self.main_window.img_copy = IPM.erode_image(self.main_window.img_copy)
             except:
-                self.main_window.imgProcessWarningLabel.setText("Error: 腐蚀操作有误")
+                self.addStringToTable("Error: 腐蚀操作有误")
                 return
         elif method == "膨胀":
             try:
                 self.main_window.img_copy = IPM.dilate_image(self.main_window.img_copy)
             except:
-                self.main_window.imgProcessWarningLabel.setText("Error: 膨胀操作有误")
+                self.addStringToTable("Error: 膨胀操作有误")
                 return
         elif method == "开运算":
             try:
                 self.main_window.img_copy = IPM.opening(self.main_window.img_copy)
             except:
-                self.main_window.imgProcessWarningLabel.setText("Error: 开运算操作有误")
+                self.addStringToTable("Error: 开运算操作有误")
                 return
         elif method == "闭运算":
             try:
                 self.main_window.img_copy = IPM.closing(self.main_window.img_copy)
             except:
-                self.main_window.imgProcessWarningLabel.setText("Error: 闭运算操作有误")
+                self.addStringToTable("Error: 闭运算操作有误")
                 return
         elif method == "RGB转BGR":
             try:
                 self.main_window.img_copy = IPM.rgb_to_bgr(self.main_window.img_copy)
             except:
-                self.main_window.imgProcessWarningLabel.setText("Error: 图像格式不为BGR格式, 请调整")
+                self.addStringToTable("Error: 图像格式不为BGR格式, 请调整")
                 return
         elif method == "BGR转HSV(需要先转化为BGR图像)":
             try:
                 self.main_window.img_copy = IPM.bgr_to_hsv(self.main_window.img_copy)
             except:
-                self.main_window.imgProcessWarningLabel.setText("Error: 图像格式不为BGR格式, 请调整")
+                self.addStringToTable("Error: 图像格式不为BGR格式, 请调整")
                 return
         elif method == "平移图像":
             self.ipw = IPW.Params_Window(IPM.translate)
-            self.ipw.pushButton.clicked.connect(lambda: self.image_button(IPM.translate))
+            self.ipw.pushButton.clicked.connect(lambda: self.image_process_with_args(IPM.translate))
             return  # 为了防止运行以下图像展示代码
 
         elif method == "旋转图像":
             self.ipw = IPW.Params_Window(IPM.rotate)
-            self.ipw.pushButton.clicked.connect(lambda: self.image_button(IPM.rotate))
+            self.ipw.pushButton.clicked.connect(lambda: self.image_process_with_args(IPM.rotate))
             return
 
         elif method == "图像镜像":
             self.ipw = IPW.Params_Window(IPM.flip)
-            self.ipw.pushButton.clicked.connect(lambda: self.image_button(IPM.flip))
+            self.ipw.pushButton.clicked.connect(lambda: self.image_process_with_args(IPM.flip))
             return
 
         elif method == "变为黑白图像":
             self.ipw = IPW.Params_Window(IPM.convert_text_to_black_sharpen_and_denoise_with_outline)
             self.ipw.pushButton.clicked.connect(
-                lambda: self.image_button(IPM.convert_text_to_black_sharpen_and_denoise_with_outline))
+                lambda: self.image_process_with_args(IPM.convert_text_to_black_sharpen_and_denoise_with_outline))
             return
             # 表示图像为彩色
         if self.main_window.img_copy.ndim == 3:
             self.show_pic([self.main_window.imgprocessScreen], self.main_window.img_copy)
         else:            # 表示图像为灰色
-            self.show_gray_pic([self.main_window.imgprocessScreen])
+            self.show_gray_pic([self.main_window.imgprocessScreen], self.main_window.img_copy)
 
         self.save_img()
 
@@ -421,10 +429,10 @@ class Ocr_demo():
                 # 提交到数据库执行
                 self.db.commit()
                 cursor.close()
-                self.main_window.imgProcessWarningLabel.setText("保存成功")
+                self.addStringToTable("保存成功")
             except Exception as e:
                 print(f"发生错误: {str(e)}")
-                self.main_window.imgProcessWarningLabel.setText("保存失败")
+                self.addStringToTable("保存失败")
                 # 如果发生错误则回滚事务
                 self.db.rollback()
                 cursor.close()
@@ -441,15 +449,15 @@ class Ocr_demo():
     # 点击预览只会在小窗口中显示处理好图片, 如果想要在大窗口显示处理好的图片, 需要点击"确认"按钮
     def image_process_ok(self):
         if self.main_window.img_copy is None:
-            self.main_window.imgProcessWarningLabel.setText("未选择图像")
+            self.addStringToTable("未选择图像")
             return
         if self.main_window.imgprocessScreen.pixmap():
             self.main_window.mainScreen.setPixmap(QPixmap.fromImage(self.qimg))
         else:
-            self.main_window.imgProcessWarningLabel.setText("请先点击预览按钮")
+            self.addStringToTable("请先点击预览按钮")
 
     # 绑定有参数的图像预处理函数，在选择完参数后，点击后可以进行变换
-    def image_button(self, function):
+    def image_process_with_args(self, function):
         self.main_window.imgprocessScreen.setScaledContents(True)
         # 创建参数字典, 用于之后的传参操作
         self.params_dict = {}
@@ -463,7 +471,7 @@ class Ocr_demo():
             self.main_window.img_copy = function(self.main_window.img_copy, **self.params_dict)  # 传入字典的方法
         except:  # 如果运行有误, 则说明用户输入的参数格式用问题
             # print("参数填入有误")
-            self.main_window.imgProcessWarningLabel.setText("Error: 参数输入有误, 或超出正常参数范围")
+            self.addStringToTable("Error: 参数输入有误, 或超出正常参数范围")
             self.ipw.close()  # 关闭参数输入窗口
             return
         # 关闭参数窗口
@@ -477,27 +485,9 @@ class Ocr_demo():
         if self.main_window.imgprocessSaveButton.clicked:
             self.save_img() # 保存图片文件至数据库
 
-    # 摄像头槽函数:获取摄像头捕捉到的每一帧图片, 并展示
-    def set_video(self):
-        ret, frame = self.cam.read()
-
-        if ret:
-            self.show_pic([self.main_window.camLabel], frame)
 
 
-    # 打开摄像头
-    def open_cam(self):
-        self.main_window.camLabel.setScaledContents(True)  # 调整图片显示大小
-        self.main_window.stackedWidget.setCurrentIndex(1)  # 跳转到摄像头界面
-        self.timer.start()  # 开启计时器
 
-    # 停止摄像头
-    def stop_cam(self):
-        self.timer.stop()
-
-    # 开启摄像头
-    def start_cam(self):
-        self.timer.start()
 
     # 切换主题
     def to_theme(self):
@@ -514,27 +504,6 @@ class Ocr_demo():
     # 摄像头捕捉
     def video_catch(self):
         self.main_window.camLabel.shape = 'rect'
-
-
-
-    # yolo识别函数，只能识别选择的图片
-    def run_model(self):
-        imgsz = check_img_size([640, 640], s=self.stride)  # check image size
-        self.img_res = run2(source=self.main_window.img_copy, model=self.model, img_size=imgsz)
-        self.show_pic([self.main_window.mainScreen], self.img_res)
-
-
-    # yolo视频检测函数
-    def video_decet(self):
-        self.timer.timeout.connect(self.video_object_decetion_image)  # 将timer绑定的函数切换成带有yolo目标识别函数
-
-    # yolo视频目标检测
-    def video_object_decetion_image(self):
-        ret, frame = self.cam.read()
-        imgsz = check_img_size([640, 640], s=self.stride)  # check image size
-        if ret:
-            frame = run2(source=frame, model=self.model, img_size=imgsz)  # 识别出来的结果
-            self.show_pic([self.main_window.camLabel], frame.copy())
 
     def sql_check(self):
         cursor = self.db.cursor()
@@ -566,7 +535,6 @@ class Ocr_demo():
                 for col in range(len(self.data[row])):
                     item = QTableWidgetItem(str(self.data[row][col]))
                     self.main_window.logtableWidget.setItem(row,col, item)
-
             cursor.close()
 
     def sql_clear(self):
@@ -574,11 +542,11 @@ class Ocr_demo():
 
     def csv_file(self):
         csv_data = pd.DataFrame(columns = self.columns_list, index = None)
-
         for row in range(len(self.data)):
             for col in range(len(self.data[row])):
                 csv_data.loc[row,self.columns_list[col]] = self.data[row][col]
-        csv_data.to_csv(f"./data/{time.time()}.csv",index=False)
+        csv_data.to_csv(f"./data/{time.time()}.csv", index=False)
+
 
     # 控件连接函数
     def connect(self):
@@ -586,31 +554,29 @@ class Ocr_demo():
         self.main_window.openImgButton.clicked.connect(self.open_image)  # 打开样例图片
         self.main_window.cutImgButton.clicked.connect(self.get_screen)  # 开启截图
         self.main_window.openDirButton.clicked.connect(self.open_dir)  # 打开文件夹
+
+        self.main_window.openCamButton.clicked.connect(self.main_window.closeCam)
         self.main_window.dirupButton.clicked.connect(self.up_image)  # 向上选取图片
         self.main_window.dirdownButton.clicked.connect(self.down_image)  # 向下选取图片
         self.main_window.viewButton.clicked.connect(self.image_process)  # 图片预处理
         self.main_window.imgprocessokButton.clicked.connect(self.image_process_ok)  #
+        self.main_window.dirokButton.clicked.connect(self.ok_image)
         # 注册界面
         self.login_window.nextButton.clicked.connect(self.create_WorkIdandName)
         self.login_window.nextButton_2.clicked.connect(self.create_BirthdayandSex)
         self.login_window.okButton.clicked.connect(self.create_UserandPassword)
         # 摄像头界面操作
-        self.main_window.openCamButton.clicked.connect(self.open_cam)
-        self.timer.timeout.connect(self.set_video)  # 打开摄像头
 
-        self.main_window.camsearchButton.clicked.connect(self.video_decet)
-        self.main_window.stopButton.clicked.connect(self.stop_cam)  # 停止摄像头
-        self.main_window.playButton.clicked.connect(self.start_cam)  # 开启摄像头
         # 设置界面
         self.main_window.themeButton.clicked.connect(self.to_theme)
         self.main_window.safeButton.clicked.connect(self.to_security)
         self.main_window.generalButton.clicked.connect(self.to_general)
         self.main_window.roieditButton.clicked.connect(self.video_catch)
         # 模型识别样例图片
-        self.main_window.moudleokButton.clicked.connect(self.run_model)
-        self.main_window.db_changeButton.clicked.connect(self.sql_check)
+        # self.main_window.moudleokButton.clicked.connect(self.run_model)
         self.main_window.cleanButton.clicked.connect(self.sql_clear)
         self.main_window.loadButton.clicked.connect(self.csv_file)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
